@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Thanks — EcoCash</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:linear-gradient(180deg,#f7fbff,#e8f3ff);font-family:Inter,Arial;padding:18px}
+  .box{background:#fff;padding:22px;border-radius:14px;box-shadow:0 12px 30px rgba(2,6,23,0.06);text-align:center;max-width:520px;width:100%}
+  .logo{height:48px;margin:0 auto 12px;display:block}
+  h2{margin:6px 0 10px;color:#0b254a;font-size:20px}
+  p{color:#556179;margin:0 0 18px;font-size:15px}
+  .details{background:#f0f6ff;padding:12px;border-radius:10px;border:1px solid #e6f0ff;color:#243b6b;margin-bottom:18px;text-align:left;font-size:14px}
+  .btn{background:#1851d3;color:white;padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:600}
+  .small{font-size:13px;color:#6b7280;margin-top:10px}
+  @media(max-width:420px){ .box{padding:16px} .logo{height:40px} h2{font-size:18px} }
+</style>
+</head>
+<body>
+  <div class="box">
+    <img src="assets/eco.png" class="logo" alt="EcoCash logo">
+    <h2>Request received</h2>
+    <p>Thank you — your details were submitted successfully. We will review and contact you shortly.</p>
+
+    <div class="details">
+      <strong>What happens next</strong>
+      <ul style="margin:8px 0 0 18px;padding:0;color:#3a4b72">
+        <li>Our team reviews your application.</li>
+        <li>We may call or SMS you for verification.</li>
+        <li>Expect an update within 24–48 hours.</li>
+      </ul>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn" onclick="window.location.href='index.html'">Submit another request</button>
+      <button style="background:#e5e7eb;color:#111;padding:10px 14px;border-radius:10px;border:0;cursor:pointer" onclick="window.location.href='https://www.google.com'">Go to homepage</button>
+    </div>
+
+    <div class="small">If you have questions, contact support via the number on the website.</div>
+  </div>
+</body>
+</html>
